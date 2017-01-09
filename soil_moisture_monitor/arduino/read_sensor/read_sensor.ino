@@ -12,12 +12,13 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(switchPin, OUTPUT);
   Serial.begin(9600);
+  Serial.println("ready");
 }
 
 int readSensor() {
   //turn on moisture sensor
   digitalWrite(switchPin, HIGH);
-  delay(1000);
+  delay(500); //wait for sensor to power up
   
   // read the value from the moisture sensor:
   int val = analogRead(sensorPin);
@@ -29,16 +30,26 @@ int readSensor() {
 }
 
 void loop() {
-  currentValue = readSensor();
-  Serial.println(currentValue);
   
-  // turn the ledPin on if moisture level is less than threshold
-  if (currentValue > threshold) {
-    digitalWrite(ledPin, HIGH);
-  } else {
-    digitalWrite(ledPin, LOW);
+  String cmd = "";
+  if (Serial.available()) {
+    cmd = Serial.readString();
+  }
+  
+  if (cmd == "read") {
+    currentValue = readSensor();
+    Serial.println(currentValue);
+    
+    // turn the ledPin on if moisture level is less than threshold
+    if (currentValue > threshold) {
+      digitalWrite(ledPin, HIGH);
+    } else {
+      digitalWrite(ledPin, LOW);
+    }
+  } else if (cmd != "") {
+    Serial.println("Error - not recognized");
   }
   
   //delay 30s
-  delay(30000);
+  //delay(30000);
 }
