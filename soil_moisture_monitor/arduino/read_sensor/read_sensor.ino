@@ -49,7 +49,4 @@ void loop() {
   } else if (cmd != "") {
     Serial.println("Error - not recognized");
   }
-  
-  //delay 30s
-  //delay(30000);
 }
