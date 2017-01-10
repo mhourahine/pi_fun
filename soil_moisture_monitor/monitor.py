@@ -1,23 +1,37 @@
 import os
+import requests
+import json
+from time import sleep, gmtime, strftime
 from serial import Serial
-from time import sleep
-from slackclient import SlackClient
-from time import gmtime, strftime
 
 arduino = None      #serial object
-slack = None        #slack object
 THRESHOLD = 920     #"dry" soil reading (from experimentation) 
 
-def slack_init():
-    #initialize slack connection
-    global slack
-    slack_token = os.environ["SLACK_API_TOKEN"]
-    slack = SlackClient(slack_token)
-    return
+try:
+    SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
+except KeyError:
+    SLACK_WEBHOOK_URL = None
+    print("""
+
+WARNING - It looks like you haven't set up on your Slack Webhook 
+URL yet. Make sure you set the SLACK_WEBHOOOK_URL environment 
+variable with your configured webhook URL.
+
+Example:  export SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXXXXXXXX/YYYYYYYYY/ZZZZZZZZZZZZZZZZZZZZZZZZ
+
+        """)
 
 def slack_notify(msg, channel):
-    slack.api_call("chat.postMessage",channel=channel,text=msg)
+    if SLACK_WEBHOOK_URL:
+        payload = {
+                "channel": channel,
+                "username": "Plant Monitor", 
+                "text": msg,
+                "icon_emoji": ":herb:"
+                }
+        response = requests.post(SLACK_WEBHOOK_URL, data=json.dumps(payload))
     return
+
 
 def timestamp():
     return strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
@@ -40,7 +54,6 @@ def read_moisture_level():
     return int(val)
 
 serial_init()
-slack_init()
 try:  
     while True:  
         print timestamp() + " - Reading moisture value..."

@@ -1,2 +1,1 @@
 pyserial==2.6
-slackclient==1.0.4
