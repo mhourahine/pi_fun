@@ -6,6 +6,7 @@ from serial import Serial
 
 arduino = None      #serial object
 THRESHOLD = 920     #"dry" soil reading (from experimentation) 
+isDry = False
 
 try:
     SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
@@ -61,11 +62,19 @@ try:
         print level
 
         if (level > THRESHOLD):
-            print "Plant is dry.  Notifying Slack."
-            slack_notify("Time to water the plants!","#notifications")
+            print "Plant is dry."
+            if not isDry:
+                print "Notifying Slack."
+                slack_notify("Time to water me! - Your plants","#notifications")
+            isDry = True
+        else:
+            if (isDry and level < THRESHOLD): 
+                print "Plant has been watered."
+                slack_notify("Ah thirst quenched. All is well again. Thanks!","#notifications")
+                isDry = False
 
-        #wait 15min between readings
-        sleep(900)
+        #wait 60min between readings
+        sleep(3600)
 
 except KeyboardInterrupt:
     arduino.close()
